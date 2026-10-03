@@ -1,0 +1,1333 @@
+Put your HTML text <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فانتازي دوري الحدود - التفاعلي</title>
+  
+  <!-- مكتبات Firebase السحابية الحقيقية والمضبوطة لمشروعك -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfSp1rqpHT_G-FTFtHg6vLCklXoK2ArM8",
+      authDomain: "fantasyalhudod.firebaseapp.com",
+      projectId: "fantasyalhudod",
+      storageBucket: "fantasyalhudod.firebasestorage.app",
+      messagingSenderId: "583714047734",
+      appId: "1:583714047734:web:a8cc7bbaecfa76c8ef0ed7",
+      measurementId: "G-D40LNQPLQC"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    * { box-sizing: border-box; font-family: Tahoma, sans-serif; margin: 0; padding: 0; }
+    body { background: #0d1117; color: #f0f6fc; padding-bottom: 50px; }
+    
+    /* شاشة تسجيل الدخول الأولية */
+    #welcomeOverlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 15px; }
+    .welcome-card { background: #161b22; border: 2px solid #00ff87; border-radius: 12px; width: 100%; max-width: 400px; padding: 25px; text-align: center; color: #f0f6fc; box-shadow: 0 0 20px rgba(0,255,135,0.2); }
+    .welcome-card h2 { color: #00ff87; margin-bottom: 10px; font-size: 18px; }
+    .welcome-card p { font-size: 12px; color: #8b949e; margin-bottom: 20px; }
+    .welcome-input { width: 100%; padding: 10px; background: #21262d; border: 1px solid #30363d; color: #fff; border-radius: 6px; text-align: center; margin-bottom: 12px; font-size: 13px; }
+    .welcome-btn { width: 100%; background: #00ff87; color: #000; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 5px; }
+    .welcome-btn:hover { background: #2ea043; color: #fff; }
+
+    header { background: #fff; padding: 12px; text-align: center; border-bottom: 2px solid #30363d; display: flex; justify-content: space-between; align-items: center; color: #000; position: relative; }
+    header h1 { font-size: 15px; color: #333; }
+    
+    .admin-btn { background: #21262d; color: #00ff87; border: 1px solid #00ff87; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
+    .admin-btn:hover { background: #30363d; }
+
+    .deadline-banner { background: #da3633; color: #fff; text-align: center; padding: 8px; font-size: 13px; font-weight: bold; border-bottom: 1px solid #b62324; display: flex; justify-content: center; gap: 10px; align-items: center; }
+    .deadline-banner.closed { background: #21262d; color: #8b949e; border-bottom: 1px solid #30363d; }
+
+    .top-stats { display: flex; justify-content: space-around; background: #161b22; padding: 10px; gap: 10px; }
+    .stat-box { background: #21262d; border-radius: 8px; padding: 8px 15px; text-align: center; border: 1px solid #30363d; flex: 1; }
+    .stat-box span { display: block; color: #00ff87; font-weight: bold; font-size: 16px; margin-top: 4px; }
+
+    .team-points-bar { display: flex; gap: 10px; margin-bottom: 8px; }
+    .tp-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 8px; flex: 1; text-align: center; }
+    .tp-box span { display: block; font-size: 10px; color: #8b949e; }
+    .tp-box strong { font-size: 14px; color: #00ff87; margin-top: 2px; display: block; }
+    
+    .tp-box.best-team-btn { cursor: pointer; border: 1px dashed #00ff87; transition: 0.2s; }
+    .tp-box.best-team-btn:hover { background: #21262d; border-color: #ffeb3b; }
+
+    .chips-bar { display: flex; justify-content: center; gap: 8px; background: #161b22; padding: 8px; border-bottom: 1px solid #30363d; flex-wrap: wrap; }
+    .chip-btn { background: #30363d; color: #f0f6fc; border: 1px solid #00ff87; padding: 5px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
+    .chip-btn.active-chip { background: #00ff87; color: #000; }
+
+    nav { display: flex; justify-content: center; background: #161b22; border-bottom: 1px solid #30363d; flex-wrap: wrap; }
+    nav button { background: none; border: none; color: #8b949e; padding: 10px 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    nav button.active { color: #00ff87; border-bottom: 3px solid #00ff87; }
+    
+    .container { max-width: 950px; margin: 15px auto; padding: 0 10px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .section-title { color: #00ff87; margin: 12px 0 6px 0; font-size: 15px; border-bottom: 1px solid #30363d; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .go-to-market-btn { background: #00ff87; color: #000; border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+    .go-to-market-btn:hover { background: #2ea043; color: #fff; }
+
+    .pitch { 
+      background: linear-gradient(180deg, #2e7d32, #1b5e20); 
+      border-radius: 12px; 
+      padding: 12px 5px; 
+      border: 2px solid #ffffff40; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-around; 
+      min-height: 480px; 
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+      gap: 10px;
+    }
+    
+    .pitch-row { display: flex; justify-content: center; gap: 6px; flex-wrap: nowrap; width: 100%; }
+    .bench-box { background: #161b22; border-radius: 10px; padding: 10px; border: 2px solid #30363d; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .slot-card { 
+      background: #1b5e20; 
+      border: 2px dashed #a5d6a7; 
+      border-radius: 6px; 
+      width: 62px; 
+      height: 75px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      color: #fff; 
+      font-size: 10px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.2s;
+      position: relative;
+      text-align: center;
+      padding: 2px;
+      flex-shrink: 0;
+    }
+    .slot-card:hover { border-color: #00ff87; background: #2e7d32; }
+    .slot-card.filled { border: 1px solid #00ff87; background: rgba(0,0,0,0.85); border-style: solid; }
+    .slot-card.filled.selected-for-sub { border-color: #ff9800; background: #3b2042; box-shadow: 0 0 8px #ff9800; }
+    .slot-card.filled strong { font-size: 9px; color: #00ff87; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+    .role-badge { position: absolute; top: -5px; right: -5px; padding: 1px 3px; border-radius: 50%; font-size: 8px; font-weight: bold; color: #fff; z-index: 2; }
+    .role-badge.c { background: #ff5252; }
+    .role-badge.tc { background: #ff9800; }
+    .role-badge.vc { background: #ab47bc; }
+
+    .bottom-actions { display: flex; justify-content: space-around; margin-top: 15px; gap: 10px; }
+    .action-btn { flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 13px; text-align: center; }
+    .btn-save { background: #3b2042; color: #00ff87; border: 1px solid #00ff87; }
+    .btn-reset { background: #21262d; color: #f0f6fc; border: 1px solid #30363d; }
+    .btn-auto { background: #21262d; color: #00ff87; border: 1px solid #00ff87; }
+
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+    .modal-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; width: 100%; max-width: 450px; padding: 20px; color: #f0f6fc; position: relative; animation: fadeIn 0.2s; max-height: 90vh; overflow-y: auto; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; background: #21262d; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #30363d; }
+    .modal-close { background: none; border: none; color: #8b949e; font-size: 18px; cursor: pointer; font-weight: bold; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #30363d; }
+    .fixture-row { display: flex; justify-content: center; gap: 5px; background: #21262d; padding: 10px; border-radius: 8px; text-align: center; font-size: 11px; margin-bottom: 15px; border: 1px solid #30363d; }
+    .fix-box { background: #161b22; padding: 8px; border-radius: 6px; flex: 1; }
+    .modal-actions { display: flex; flex-direction: column; gap: 8px; }
+    .modal-btn-row { display: flex; gap: 8px; width: 100%; }
+    .modal-btn { flex: 1; padding: 9px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 11px; text-align: center; }
+    .btn-captain { background: #3b2042; color: #00ff87; border: 1px solid #00ff87; }
+    .btn-vc { background: #21262d; color: #ab47bc; border: 1px solid #ab47bc; }
+    .btn-sub { background: #ff9800; color: #000; }
+    .btn-remove-player { background: #da3633; color: #fff; width: 100%; margin-top: 4px; }
+
+    .market-table-container { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 10px; margin-bottom: 20px; overflow-x: auto; }
+    .market-table-container h3 { color: #00ff87; border-bottom: 2px solid #30363d; padding-bottom: 6px; margin-bottom: 10px; font-size: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .market-table-container h3:hover { color: #fff; }
+    
+    .market-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: right; }
+    .market-table th, .market-table td { padding: 8px; border-bottom: 1px solid #30363d; }
+    .market-table th { background: #21262d; color: #00ff87; font-size: 11px; }
+    
+    .jersey-icon { width: 22px; height: 22px; display: inline-block; vertical-align: middle; margin-left: 5px; background: #30363d; border-radius: 4px; text-align: center; line-height: 22px; font-size: 10px; }
+    
+    .btn-select-market { background: #00ff87; color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+    .btn-select-market.remove { background: #ff5252; color: #fff; }
+
+    .league-table-wrapper { overflow-x: auto; background: #161b22; border-radius: 8px; border: 1px solid #30363d; margin-top: 15px; }
+    .league-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; min-width: 600px; }
+    .league-table th, .league-table td { padding: 8px 4px; border-bottom: 1px solid #30363d; white-space: nowrap; }
+    .league-table th { background: #21262d; color: #00ff87; font-size: 11px; }
+    .league-table td:nth-child(2) { text-align: right; padding-right: 8px; }
+    .league-table th:nth-child(2) { text-align: right; padding-right: 8px; }
+    .team-badge { width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-left: 4px; border-radius: 50%; background: #30363d; text-align: center; line-height: 20px; font-size: 10px; }
+
+    .fixtures-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+    .matchweek-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; }
+    .matchweek-title { color: #00ff87; font-size: 15px; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #30363d; padding-bottom: 6px; text-align: center; background: #21262d; border-radius: 6px; }
+    .match-item { display: flex; justify-content: space-between; align-items: center; background: #21262d; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; border: 1px solid #30363d; }
+    .match-team { flex: 1; text-align: center; font-weight: bold; color: #f0f6fc; }
+    .match-middle { display: flex; flex-direction: column; align-items: center; gap: 3px; margin: 0 10px; min-width: 80px; }
+    .match-vs { background: #00ff87; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+    .match-time { color: #ffeb3b; font-size: 10px; font-weight: bold; white-space: nowrap; }
+
+    .rules-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px; line-height: 1.8; font-size: 13px; }
+    .rules-card h3 { color: #00ff87; margin-bottom: 10px; border-bottom: 1px solid #30363d; padding-bottom: 5px; }
+    .rules-card ul { padding-right: 20px; color: #c9d1d9; }
+    .rules-card li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- شاشة البداية الإجبارية (إدخال اسم المدرب واسم الفريق) -->
+<div id="welcomeOverlay">
+  <div class="welcome-card">
+    <h2>⚽ فانتازي دوري الحدود</h2>
+    <p>أدخل بيانات فريقك للبدء في اختيار التشكيلة</p>
+    <input type="text" id="managerNameInput" class="welcome-input" placeholder="اسم المدرب (مثال: عباس هيثم)">
+    <input type="text" id="teamNameInput" class="welcome-input" placeholder="اسم الفريق (مثال: صقور الحدود)">
+    <button class="welcome-btn" onclick="startApp()">الدخول لاختيار التشكيلة 🚀</button>
+  </div>
+</div>
+
+<div id="deadlineBanner" class="deadline-banner">
+  <span>⏳ الموعد النهائي (Deadline):</span>
+  <span id="countdownTimer" style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-family: monospace;">جاري الحساب...</span>
+</div>
+
+<header>
+  <button class="admin-btn" onclick="openAdminLogin()">⚙ لوحة التحكم</button>
+  
+  <div>
+    <h1 style="font-size: 15px;">فانتازي دوري الحدود</h1>
+    <span id="headerTeamInfo" style="font-size: 11px; color: #00ff87; font-weight: bold;">مدرب: -- | فريق: --</span>
+  </div>
+
+  <div style="text-align: left; font-size: 11px;">
+    <span style="font-weight: bold; color: #333; display: block;">مؤسس الدوري: علاء الملك 👑</span>
+    <span style="font-weight: bold; color: #555; display: block;">مصمم اللعبة: عباس البدري 💻</span>
+  </div>
+</header>
+
+<div class="top-stats">
+  <div class="stat-box">الرصيد <span id="budgetDisplay">$100.0M</span></div>
+  <div class="stat-box" style="background: #ff5252; color: #fff;">اللاعبون المختارة <span id="countDisplay" style="color:#fff;">0 / 15</span></div>
+  <div class="stat-box" style="background: #1f6feb; color: #fff;">متواجد الآن <span id="onlineCount" style="color:#fff;">3</span></div>
+</div>
+
+<div class="chips-bar">
+  <button id="chipTC" class="chip-btn" onclick="toggleChip('TC')">⚡ تريبل كابتن</button>
+  <button id="chipBB" class="chip-btn" onclick="toggleChip('BB')">🛡️ بنش بوست</button>
+</div>
+
+<nav>
+  <button id="navTeamBtn" class="active" onclick="switchTab('team', this)">التشكيلة</button>
+  <button id="navPlayersBtn" onclick="switchTab('players', this)">سوق اللاعبين</button>
+  <button id="navSavedTeamsBtn" onclick="switchTab('savedTeams', this)">📋 التشكيلات المحفوظة</button>
+  <button id="navLeagueBtn" onclick="switchTab('league', this)">جدول الترتيب</button>
+  <button id="navFixturesBtn" onclick="switchTab('fixtures', this)">جدول المباريات</button>
+  <button id="navRulesBtn" onclick="switchTab('rules', this)">قواعد النقاط</button>
+</nav>
+
+<div class="container">
+
+  <!-- التشكيلة -->
+  <div id="team" class="tab-content active">
+    
+    <div class="team-points-bar">
+      <div class="tp-box">
+        <span>نقاط الجولة</span>
+        <strong id="gwPointsDisplay">0</strong>
+      </div>
+      <div class="tp-box best-team-btn" onclick="openBestTeamModal()" title="لا يوجد أعلى تشكيلة حالياً">
+        <span>👑 أقوى تشكيلة (الجولة)</span>
+        <strong id="bestTeamScoreDisplay" style="color: #ffeb3b;">لا يوجد</strong>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>التشكيلة الأساسية (4-3-3)</span>
+      <button class="go-to-market-btn" onclick="goToMarket()">+ اختر اللاعبين من السوق 🛒</button>
+    </div>
+
+    <div class="pitch" id="pitchView">
+      <div class="pitch-row" id="row_GK"></div>
+      <div class="pitch-row" id="row_DEF"></div>
+      <div class="pitch-row" id="row_MID"></div>
+      <div class="pitch-row" id="row_FWD"></div>
+    </div>
+
+    <div class="section-title">دكة الاحتياط (4 لاعبين)</div>
+    <div class="bench-box" id="benchView"></div>
+
+    <!-- زر الحفظ والنشر داخل الموقع -->
+    <div class="bottom-actions">
+      <button class="action-btn btn-save" onclick="saveTeam()">💾 حفظ ونشر التشكيلة بالموقع</button>
+      <button class="action-btn btn-reset" onclick="resetTeam()">إعادة تعيـين</button>
+      <button class="action-btn btn-auto" onclick="autoPick()">اختيار تلقائي</button>
+    </div>
+  </div>
+
+  <!-- سوق اللاعبين -->
+  <div id="players" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h2>سوق الانتقالات</h2>
+      <button id="resetFilterBtn" style="display:none; background:#30363d; color:#00ff87; border:1px solid #00ff87; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px;" onclick="filterMarketByPos(null)">عرض كل المراكز</button>
+    </div>
+    <div id="marketContainer" style="margin-top: 15px;"></div>
+  </div>
+
+  <!-- خانة التشكيلات المحفوظة داخل الموقع -->
+  <div id="savedTeams" class="tab-content">
+    <h2>📋 التشكيلات التي حفظها المستخدمون</h2>
+    <p style="font-size: 12px; color: #8b949e; margin-bottom: 15px;">هذه القائمة عامة ويستطيع كل زوار ومستخدمي الموقع رؤية تشكيلات المدربين بداخلها.</p>
+    <div id="publicSavedTeamsContainer" style="display: flex; flex-direction: column; gap: 12px;">
+      <p style="color: #8b949e; text-align: center; padding: 20px;">جاري تحميل التشكيلات المحفوظة...</p>
+    </div>
+  </div>
+
+  <!-- جدول الترتيب -->
+  <div id="league" class="tab-content">
+    <h2>ترتيب الفرق في البطولة (مؤسس الدوري: علاء الملك)</h2>
+    <div class="league-table-wrapper">
+      <table class="league-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الاسم</th>
+            <th>لعب</th>
+            <th>ف</th>
+            <th>ت</th>
+            <th>خ</th>
+            <th>هـ</th>
+            <th>ل</th>
+            <th>فرق</th>
+            <th>نقاط</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><span class="team-badge">?</span> المدينة</td><td>13</td><td>6</td><td>5</td><td>2</td><td>11</td><td>6</td><td>5</td><td><strong>23</strong></td></tr>
+          <tr><td>2</td><td><span class="team-badge">🛡️</span> شباب سومر</td><td>13</td><td>7</td><td>2</td><td>4</td><td>19</td><td>18</td><td>1</td><td><strong>23</strong></td></tr>
+          <tr><td>3</td><td><span class="team-badge">⭐</span> الكواكب</td><td>13</td><td>6</td><td>4</td><td>3</td><td>20</td><td>12</td><td>8</td><td><strong>22</strong></td></tr>
+          <tr><td>4</td><td><span class="team-badge">🦅</span> ن.ذي قار</td><td>13</td><td>6</td><td>4</td><td>3</td><td>8</td><td>7</td><td>1</td><td><strong>22</strong></td></tr>
+          <tr><td>5</td><td><span class="team-badge">🛡️</span> م.الشهداء</td><td>13</td><td>6</td><td>3</td><td>4</td><td>16</td><td>10</td><td>6</td><td><strong>21</strong></td></tr>
+          <tr><td>6</td><td><span class="team-badge">⚽</span> ج.الاسكان</td><td>14</td><td>5</td><td>5</td><td>4</td><td>19</td><td>13</td><td>6</td><td><strong>20</strong></td></tr>
+          <tr><td>7</td><td><span class="team-badge">🎖️</span> م.ح العسكري</td><td>13</td><td>5</td><td>3</td><td>5</td><td>16</td><td>20</td><td>-4</td><td><strong>18</strong></td></tr>
+          <tr><td>8</td><td><span class="team-badge">🛡️</span> العمال</td><td>13</td><td>4</td><td>5</td><td>4</td><td>14</td><td>14</td><td>0</td><td><strong>17</strong></td></tr>
+          <tr><td>9</td><td><span class="team-badge">⭐</span> الشهداء</td><td>13</td><td>4</td><td>4</td><td>5</td><td>19</td><td>15</td><td>4</td><td><strong>16</strong></td></tr>
+          <tr><td>10</td><td><span class="team-badge">⚽</span> اريدو</td><td>13</td><td>4</td><td>4</td><td>5</td><td>18</td><td>14</td><td>4</td><td><strong>16</strong></td></tr>
+          <tr><td>11</td><td><span class="team-badge">🛡</span> الجزيرة</td><td>13</td><td>4</td><td>4</td><td>5</td><td>13</td><td>19</td><td>-6</td><td><strong>16</strong></td></tr>
+          <tr><td>12</td><td><span class="team-badge">⚽</span> الحدود</td><td>13</td><td>4</td><td>3</td><td>6</td><td>17</td><td>21</td><td>-4</td><td><strong>15</strong></td></tr>
+          <tr><td>13</td><td><span class="team-badge">?</span> الجويه</td><td>13</td><td>3</td><td>5</td><td>5</td><td>13</td><td>17</td><td>-4</td><td><strong>14</strong></td></tr>
+          <tr><td>14</td><td><span class="team-badge">⚽</span> التضحية</td><td>13</td><td>3</td><td>4</td><td>6</td><td>15</td><td>17</td><td>-2</td><td><strong>13</strong></td></tr>
+          <tr><td>15</td><td><span class="team-badge">?</span> نجوم المدينه</td><td>13</td><td>3</td><td>1</td><td>9</td><td>12</td><td>27</td><td>-15</td><td><strong>10</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- جدول المباريات -->
+  <div id="fixtures" class="tab-content">
+    <h2>جدول المباريات والتوقيتات</h2>
+    <div class="fixtures-container">
+      <div class="matchweek-card">
+        <div class="matchweek-title">الدور الخامس عشر 15</div>
+        <div class="match-item"><span class="match-team">التضحية</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الأحد 05:00 م</span></div><span class="match-team">الجويه</span></div>
+        <div class="match-item"><span class="match-team">الجزيرة</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الأحد 05:00 م</span></div><span class="match-team">م/الحي العسكري</span></div>
+        <div class="match-item"><span class="match-team">ن/المدينة</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الإثنين 05:00 م</span></div><span class="match-team">الكواكب</span></div>
+        <div class="match-item"><span class="match-team">م/الشهداء</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الإثنين 05:00 م</span></div><span class="match-team">ن/ذي قار</span></div>
+        <div class="match-item"><span class="match-team">الشهداء</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الأحد 05:00 م</span></div><span class="match-team">الحدود</span></div>
+        <div class="match-item"><span class="match-team">العمال</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الأحد 05:00 م</span></div><span class="match-team">اريدو</span></div>
+        <div class="match-item"><span class="match-team">انتظار</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الأحد 05:00 م</span></div><span class="match-team">جنوب الإسكان</span></div>
+        <div class="match-item"><span class="match-team">المدينة</span><div class="match-middle"><span class="match-vs">VS</span><span class="match-time">الإثنين 05:00 م</span></div><span class="match-team">ش/سومر</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- قواعد النقاط -->
+  <div id="rules" class="tab-content">
+    <div class="rules-card">
+      <h3>📜 قواعد احتساب النقاط في الفانتازي</h3>
+      <ul>
+        <li><strong>المشاركة في المباراة:</strong> نقطة واحدة (لأقل من 60 دقيقة)، نقطتان (60 دقيقة فأكثر).</li>
+        <li><strong>تسجيل الأهداف:</strong>
+          <ul>
+            <li>حارس المرمى أو المدافع: <strong>6 نقاط</strong></li>
+            <li>خط الوسط: <strong>5 نقاط</strong></li>
+            <li>المهاجم: <strong>4 نقاط</strong></li>
+          </ul>
+        </li>
+        <li><strong>صناعة الهدف (الأسيست):</strong> <strong>3 نقاط</strong> لكل لاعب.</li>
+        <li><strong>كلين شيت (المحافظة على نظافة الشباك):</strong>
+          <ul>
+            <li>حارس المرمى أو المدافع: <strong>4 نقاط</strong></li>
+            <li>خط الوسط: <strong>نقطة واحدة</strong></li>
+          </ul>
+        </li>
+        <li><strong>البطاقات العقابية:</strong>
+          <ul>
+            <li>بطاقة صفراء: <strong>-1 نقطة</strong></li>
+            <li>بطاقة حمراء: <strong>-3 نقاط</strong></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- نافذة معلومات اللاعب -->
+<div id="playerModal" class="modal-overlay" onclick="closePlayerModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3 id="modalPlayerName" style="color: #00ff87; font-size: 16px;">اسم اللاعب</h3>
+        <span id="modalPlayerTeam" style="font-size: 12px; color: #8b949e;">الفريق</span>
+      </div>
+      <button class="modal-close" onclick="closePlayerModalDirect()">✕</button>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+      <span>السعر: <strong id="modalPlayerPrice" style="color: #00ff87;">$0.0M</strong></span>
+      <span>المركز: <strong id="modalPlayerPos" style="color: #ffeb3b;">مركز</strong></span>
+    </div>
+
+    <div class="stats-grid">
+      <div><span style="font-size:10px; color:#8b949e">نقاط الجولة</span><strong id="modalPtsGame" style="display:block; color:#00ff87; font-size:14px; margin-top:3px;">0</strong></div>
+      <div><span style="font-size:10px; color:#8b949e">آخر النتائج</span><strong id="modalLastPts" style="display:block; color:#00ff87; font-size:14px; margin-top:3px;">8.0</strong></div>
+      <div><span style="font-size:10px; color:#8b949e">نسبة الاختيار</span><strong id="modalOwnership" style="display:block; color:#00ff87; font-size:14px; margin-top:3px;">10.0%</strong></div>
+    </div>
+
+    <div style="font-size: 12px; color: #8b949e; margin-bottom: 5px;">الدور 15 (المباراة القادمة)</div>
+    <div class="fixture-row">
+      <div class="fix-box" id="modalNextFixture">
+        <span>المنافس والتوقيت</span><br>
+        <strong style="color:#00ff87; font-size:12px;">--</strong>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <div class="modal-btn-row">
+        <button class="modal-btn btn-captain" onclick="makeCaptainModal()">تعيين كابتن (C)</button>
+        <button class="modal-btn btn-vc" onclick="makeViceCaptainModal()">نائب الكابتن (V)</button>
+      </div>
+      <div class="modal-btn-row">
+        <button class="modal-btn btn-sub" onclick="initiateSubModal()">تبديل (بديل)</button>
+        <button class="modal-btn btn-remove-player" onclick="removePlayerFromModal()">إزالة اللاعب ❌</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة أقوى تشكيلة -->
+<div id="bestTeamModal" class="modal-overlay" onclick="closeBestTeamModal(event)">
+  <div class="modal-card" style="max-width: 400px; text-align: center;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 style="color: #ffeb3b; font-size: 15px;">👑 تفاصيل أقوى تشكيلة في الجولة</h3>
+      <button class="modal-close" onclick="document.getElementById('bestTeamModal').style.display='none'">✕</button>
+    </div>
+    <div style="background: #21262d; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #30363d;">
+      <p style="font-size: 13px; color: #8b949e; margin-bottom: 5px;">صاحب المركز الأول لهذا الأسبوع:</p>
+      <h2 style="color: #00ff87; font-size: 20px; margin-bottom: 8px;">لا يوجد</h2>
+      <span style="background: #3b2042; color: #ffeb3b; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #00ff87;">مجموع النقاط: 0</span>
+    </div>
+    <p style="font-size: 12px; color: #c9d1d9; line-height: 1.6;">لا توجد بيانات لأقوى تشكيلة مسجلة حتى الآن في هذه الجولة.</p>
+    <button onclick="document.getElementById('bestTeamModal').style.display='none'" style="width: 100%; margin-top: 15px; background: #00ff87; color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">إغلاق</button>
+  </div>
+</div>
+
+<!-- نافذة تسجيل دخول لوحة التحكم -->
+<div id="adminLoginModal" class="modal-overlay" onclick="closeAdminModals(event)">
+  <div class="modal-card" style="max-width: 320px; text-align: center;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 style="color: #00ff87; font-size: 14px;">تسجيل دخول المنظم</h3>
+      <button class="modal-close" onclick="document.getElementById('adminLoginModal').style.display='none'">✕</button>
+    </div>
+    <p style="font-size: 12px; color: #8b949e; margin-bottom: 12px;">أدخل كلمة المرور الخاصة بلوحة التحكم:</p>
+    <input type="password" id="adminPasswordInput" placeholder="كلمة المرور" style="width: 100%; padding: 8px; background: #21262d; border: 1px solid #30363d; color: #fff; border-radius: 6px; text-align: center; margin-bottom: 12px; font-size: 14px;">
+    <button onclick="checkAdminPassword()" style="width: 100%; background: #00ff87; color: #000; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">دخول</button>
+  </div>
+</div>
+
+<!-- لوحة التحكم وتشكيلات المستخدمين -->
+<div id="adminPanelModal" class="modal-overlay" onclick="closeAdminModals(event)">
+  <div class="modal-card" style="max-width: 650px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 style="color: #00ff87; font-size: 15px;">⚙ لوحة تحكم المنظم - تشكيلات المستخدمين</h3>
+      <button class="modal-close" onclick="document.getElementById('adminPanelModal').style.display='none'">✕</button>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <h4 style="color: #ffeb3b; font-size: 13px; margin-bottom: 8px;">📋 تشكيلات المستخدمين المحفوظة سحابياً:</h4>
+      <div id="adminTeamsContainer" style="max-height: 250px; overflow-y: auto; background: #21262d; padding: 10px; border-radius: 6px; border: 1px solid #30363d; font-size: 12px;">
+        جاري تحميل التشكيلات...
+      </div>
+    </div>
+
+    <h4 style="color: #00ff87; font-size: 13px; margin-bottom: 8px;">⚽ تعديل نقاط اللاعبين:</h4>
+    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #30363d; border-radius: 6px;">
+      <table class="market-table">
+        <thead>
+          <tr>
+            <th>اللاعب</th>
+            <th>الفريق</th>
+            <th>المركز</th>
+            <th>نقاط الجولة</th>
+          </tr>
+        </thead>
+        <tbody id="adminPlayersTableBody"></tbody>
+      </table>
+    </div>
+    <button onclick="saveAdminPoints()" style="width: 100%; margin-top: 12px; background: #00ff87; color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">حفظ النقاط وتحديث الموقع</button>
+  </div>
+</div>
+
+<script>
+  // ضبط العداد ليعمل لمدة 15 ساعة تماماً
+  const deadlineTime = new Date().getTime() + (15 * 60 * 60 * 1000); 
+
+  function updateOnlineCount() {
+    let baseCount = 3;
+    let randomFluctuation = Math.floor(Math.random() * 5);
+    let onlineEl = document.getElementById('onlineCount');
+    if (onlineEl) onlineEl.innerText = baseCount + randomFluctuation;
+  }
+  setInterval(updateOnlineCount, 5000);
+
+  const allPlayers = [
+    { id: 1, name: "ميثم عدنان", team: "الحدود", pos: "دفاع", price: 6.0, ownership: "10.0%", points: 0 },
+    { id: 2, name: "مهيمن محمد", team: "الحدود", pos: "وسط", price: 8.0, ownership: "10.0%", points: 0 },
+    { id: 3, name: "كرار علي", team: "الحدود", pos: "وسط", price: 6.5, ownership: "10.0%", points: 0 },
+    { id: 4, name: "حسوني الكوري", team: "الحدود", pos: "هجوم", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 5, name: "ضياء عبد", team: "الشهداء", pos: "هجوم", price: 8.0, ownership: "10.0%", points: 0 },
+    { id: 6, name: "ابراهيم عباس", team: "الحدود", pos: "هجوم", price: 7.5, ownership: "10.0%", points: 0 },
+    { id: 7, name: "زمن عبد الرزاق", team: "الشهداء", pos: "دفاع", price: 6.0, ownership: "10.0%", points: 0 },
+    { id: 8, name: "مصطفى محمد", team: "الشهداء", pos: "دفاع", price: 5.0, ownership: "10.0%", points: 0 },
+    { id: 9, name: "جابر محمد", team: "المدينة", pos: "هجوم", price: 12.0, ownership: "10.0%", points: 0 },
+    { id: 10, name: "هادي صكر", team: "الحدود", pos: "دفاع", price: 5.5, ownership: "10.0%", points: 0 },
+    { id: 11, name: "علي ستار", team: "العمال", pos: "وسط", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 12, name: "دايش", team: "نجوم المدينة", pos: "هجوم", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 13, name: "هديرس", team: "منتخب الشهداء", pos: "وسط", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 14, name: "حسين فنيخر", team: "منتخب الشهداء", pos: "وسط", price: 8.0, ownership: "10.0%", points: 0 },
+    { id: 15, name: "حيدر حليش", team: "الحدود", pos: "دفاع", price: 6.0, ownership: "10.0%", points: 0 },
+    { id: 16, name: "احمد محمد", team: "الحدود", pos: "دفاع", price: 5.0, ownership: "10.0%", points: 0 },
+    { id: 17, name: "مصطفى نايف", team: "م.ح.العسكري", pos: "وسط", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 18, name: "مؤمل محسن", team: "منتخب الشهداء", pos: "وسط", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 19, name: "سجاد حميد", team: "م.ح.العسكري", pos: "وسط", price: 7.0, ownership: "10.0%", points: 0 },
+    { id: 20, name: "كرار محمد", team: "الحدود", pos: "حارس", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 21, name: "مصطفى حيدر", team: "الحدود", pos: "حارس", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 22, name: "علاء غني", team: "الجوية", pos: "حارس", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 23, name: "علي قاسم", team: "ش.سومر", pos: "حارس", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 24, name: "علي رشيد", team: "الشهداء", pos: "حارس", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 25, name: "حسين شهيد", team: "الكواكب", pos: "حارس", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 26, name: "كريم دلي", team: "ش.سومر", pos: "هجوم", price: 10.0, ownership: "5.0%", points: 0 },
+    { id: 27, name: "عباس محمد", team: "الحدود", pos: "هجوم", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 28, name: "علي سالم", team: "الجزيرة", pos: "هجوم", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 29, name: "حسين سامي", team: "التضحية", pos: "هجوم", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 30, name: "غرير", team: "اريدو", pos: "هجوم", price: 11.0, ownership: "5.0%", points: 0 },
+    { id: 31, name: "نور الدين صباح", team: "منتخب الشهداء", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 32, name: "مصطفى كاظم", team: "الحدود", pos: "وسط", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 33, name: "بسام مطشر", team: "الكواكب", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 34, name: "حسن زيكو", team: "العمال", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 35, name: "حساني كاظم", team: "الشهداء", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 36, name: "خيرالله عبد الحسين", team: "الحدود", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 37, name: "حيدر سمير", team: "جنوب الاسكان", pos: "دفاع", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 38, name: "ستار جبار", team: "الكواكب", pos: "دفاع", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 39, name: "مصطفى عطية", team: "الشهداء", pos: "دفاع", price: 5.5, ownership: "5.0%", points: 0 },
+    { id: 40, name: "ناطق فالح", team: "ش.سومر", pos: "دفاع", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 41, name: "اسعد علي", team: "نجوم ذي قار", pos: "دفاع", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 42, name: "باسم غالب", team: "نجوم ذي قار", pos: "دفاع", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 43, name: "كفاح صلاح", team: "الجوية", pos: "دفاع", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 44, name: "حسن داخل", team: "جنوب الاسكان", pos: "وسط", price: 11.0, ownership: "5.0%", points: 0 },
+    { id: 45, name: "حسين فالح", team: "الكواكب", pos: "وسط", price: 9.0, ownership: "5.0%", points: 0 },
+    { id: 46, name: "جعفر داود", team: "العمال", pos: "وسط", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 47, name: "علي موسى", team: "منتخب الشهداء", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 48, name: "حسين باسم", team: "منتخب الشهداء", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 49, name: "وسام رحيم", team: "الشهداء", pos: "دفاع", price: 5.5, ownership: "5.0%", points: 0 },
+    { id: 50, name: "زبادي", team: "نجوم ذي قار", pos: "وسط", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 51, name: "كرار كمال", team: "نجوم ذي قار", pos: "وسط", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 52, name: "سيف علي", team: "الحدود", pos: "وسط", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 53, name: "رضا جاسم", team: "الحدود", pos: "وسط", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 54, name: "جمال كامل", team: "ش.سومر", pos: "وسط", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 55, name: "موسى احمد", team: "الحدود", pos: "وسط", price: 7.5, ownership: "5.0%", points: 0 },
+    { id: 56, name: "عباس عدنان", team: "الحدود", pos: "وسط", price: 9.0, ownership: "5.0%", points: 0 },
+    { id: 57, name: "حسن عبد الامير", team: "الحدود", pos: "هجوم", price: 10.0, ownership: "5.0%", points: 0 },
+    { id: 58, name: "عباس هيثم", team: "الحدود", pos: "هجوم", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 59, name: "سجاد محمد", team: "الحدود", pos: "وسط", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 60, name: "ميثم حكيم", team: "م.ح.العسكري", pos: "وسط", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 61, name: "عباس عبد", team: "العمال", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 62, name: "محمد نومي", team: "ش.سومر", pos: "دفاع", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 63, name: "رضا حسين", team: "المدينة", pos: "دفاع", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 64, name: "ويلاد خالد", team: "المدينة", pos: "وسط", price: 7.5, ownership: "5.0%", points: 0 },
+    { id: 65, name: "جاسم محمد", team: "الحدود", pos: "هجوم", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 66, name: "مصطفى احمد", team: "الحدود", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 67, name: "زين عقيل", team: "الحدود", pos: "وسط", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 68, name: "كاظم جواد", team: "م.ح.العسكري", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 69, name: "زين العابدين موسى", team: "م.ح.العسكري", pos: "هجوم", price: 9.0, ownership: "5.0%", points: 0 },
+    { id: 70, name: "احمد ميثم", team: "الحدود", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 71, name: "حسن مرعي", team: "ش.سومر", pos: "هجوم", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 72, name: "زين العابدين", team: "الشهداء", pos: "حارس", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 73, name: "حيدر احمد", team: "العمال", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 74, name: "مصطفى علاء", team: "منتخب الشهداء", pos: "هجوم", price: 6.5, ownership: "5.0%", points: 0 },
+    { id: 75, name: "براك زايد", team: "العمال", pos: "هجوم", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 76, name: "احمد حسين", team: "التضحية", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 77, name: "ياسر حسين", team: "التضحية", pos: "هجوم", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 78, name: "رحيم عباس", team: "المدينة", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 79, name: "سجاد كريم", team: "المدينة", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 80, name: "علي جواد", team: "المدينة", pos: "حارس", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 82, name: "اباذر سالم", team: "الكواكب", pos: "وسط", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 83, name: "يوسف سعد", team: "نجوم ذي قار", pos: "وسط", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 84, name: "مصطفى جليل", team: "الشهداء", pos: "هجوم", price: 9.0, ownership: "5.0%", points: 0 },
+    { id: 85, name: "ضياء حسين", team: "نجوم ذي قار", pos: "هجوم", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 86, name: "علي صبيح", team: "الكواكب", pos: "دفاع", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 87, name: "علي حسين", team: "الجوية", pos: "حارس", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 88, name: "مصطفى سليم", team: "الجزيرة", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 89, name: "حسن مؤيد", team: "العمال", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 90, name: "عدنان نايف", team: "الجوية", pos: "هجوم", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 91, name: "عمر علي", team: "ش.سومر", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 92, name: "مرتضى احمد", team: "الجوية", pos: "وسط", price: 7.5, ownership: "5.0%", points: 0 },
+    { id: 93, name: "عباس باسم", team: "العمال", pos: "هجوم", price: 10.0, ownership: "5.0%", points: 0 },
+    { id: 94, name: "وليد جويد", team: "اريدو", pos: "وسط", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 95, name: "سجاد حسين", team: "الجوية", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 96, name: "امجد سعد", team: "المدينة", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 97, name: "منتظر لفته", team: "نجوم ذي قار", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 98, name: "علي ضياء", team: "الجوية", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 99, name: "علي خلف", team: "الجزيرة", pos: "وسط", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 100, name: "عباس هادي", team: "الكواكب", pos: "وسط", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 101, name: "حسن زغير", team: "م.ح.العسكري", pos: "هجوم", price: 9.0, ownership: "5.0%", points: 0 },
+    { id: 102, name: "انور خلف", team: "نجوم ذي قار", pos: "وسط", price: 7.0, ownership: "5.0%", points: 0 },
+    { id: 103, name: "عمار حسن", team: "نجوم ذي قار", pos: "دفاع", price: 5.0, ownership: "5.0%", points: 0 },
+    { id: 104, name: "حسين لطيف سمارة", team: "العمال", pos: "دفاع", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 105, name: "عباس عبد", team: "ش.سومر", pos: "هجوم", price: 8.0, ownership: "5.0%", points: 0 },
+    { id: 106, name: "علي احمد", team: "الحدود", pos: "وسط", price: 6.0, ownership: "5.0%", points: 0 },
+    { id: 107, name: "سجاد بشير", team: "المدينة", pos: "هجوم", price: 10.0, ownership: "5.0%", points: 0 },
+    { id: 108, name: "عباس محمد", team: "المدينة", pos: "هجوم", price: 9.0, ownership: "5.0%", points: 0 }
+  ];
+
+  const matchweek15Fixtures = {
+    "الحدود": "ضد الشهداء (الأحد 05:00 م)",
+    "الشهداء": "ضد الحدود (الأحد 05:00 م)",
+    "التضحية": "ضد الجوية (الأحد 05:00 م)",
+    "الجوية": "ضد التضحية (الأحد 05:00 م)",
+    "الجزيرة": "ضد م/الحي العسكري (الأحد 05:00 م)",
+    "م/الحي العسكري": "ضد الجزيرة (الأحد 05:00 م)",
+    "العمال": "ضد اريدو (الأحد 05:00 م)",
+    "اريدو": "ضد العمال (الأحد 05:00 م)",
+    "انتظار": "ضد جنوب الإسكان (الأحد 05:00 م)",
+    "جنوب الاسكان": "ضد انتظار (الأحد 05:00 م)",
+    "ن/المدينة": "ضد الكواكب (الإثنين 05:00 م)",
+    "الكواكب": "ضد ن/المدينة (الإثنين 05:00 م)",
+    "م/الشهداء": "ضد ن/ذي قار (الإثنين 05:00 م)",
+    "نجوم ذي قار": "ضد م/الشهداء (الإثنين 05:00 م)",
+    "ن/ذي قار": "ضد م/الشهداء (الإثنين 05:00 م)",
+    "المدينة": "ضد ش/سومر (الإثنين 05:00 م)",
+    "ش/سومر": "ضد المدينة (الإثنين 05:00 م)",
+    "نجوم المدينة": "ضد الكواكب (الإثنين 05:00 م)",
+    "منتخب الشهداء": "ضد الحدود (الأحد 05:00 م)"
+  };
+
+  let myTeam = []; 
+  let totalBudget = 100.0;
+  let captainId = null;
+  let viceCaptainId = null;
+  let activeChip = null; 
+  let selectedPosFilter = null; 
+  let selectedPlayerForSub = null; 
+  let currentModalPlayer = null;
+  let managerName = "";
+  let teamName = "";
+
+  function startApp() {
+    let mInput = document.getElementById('managerNameInput').value.trim();
+    let tInput = document.getElementById('teamNameInput').value.trim();
+
+    if (!mInput || !tInput) {
+      alert("الرجاء إدخال اسم المدرب واسم الفريق للمتابعة!");
+      return;
+    }
+
+    managerName = mInput;
+    teamName = tInput;
+
+    document.getElementById('headerTeamInfo').innerText = `المدرب: ${managerName} | الفريق: ${teamName}`;
+    document.getElementById('welcomeOverlay').style.display = 'none';
+
+    localStorage.setItem('border_manager', managerName);
+    localStorage.setItem('border_teamname', teamName);
+  }
+
+  function goToMarket() {
+    let playersBtn = document.querySelectorAll('nav button')[1];
+    switchTab('players', playersBtn);
+    filterMarketByPos(null);
+  }
+
+  function isDeadlinePassed() {
+    return new Date().getTime() > deadlineTime;
+  }
+
+  function updateCountdown() {
+    let now = new Date().getTime();
+    let distance = deadlineTime - now;
+    let banner = document.getElementById('deadlineBanner');
+    let timerEl = document.getElementById('countdownTimer');
+
+    if (distance < 0) {
+      banner.className = "deadline-banner closed";
+      banner.innerHTML = "<span>🔒 انتهى الموعد النهائي (Deadline) - تم إغلاق التغييرات والانتقالات!</span>";
+      return;
+    }
+
+    let hours = Math.floor(distance / (1000 * 60 * 60));
+    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    timerEl.innerText = `${hours}س ${minutes}د ${seconds}ث`;
+  }
+  setInterval(updateCountdown, 1000);
+
+  function openAdminLogin() {
+    document.getElementById('adminLoginModal').style.display = 'flex';
+    document.getElementById('adminPasswordInput').value = '';
+  }
+
+  function closeAdminModals(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+      e.target.style.display = 'none';
+    }
+  }
+
+  function openBestTeamModal() {
+    document.getElementById('bestTeamModal').style.display = 'flex';
+  }
+
+  function closeBestTeamModal(e) {
+    if (e.target.id === 'bestTeamModal') {
+      document.getElementById('bestTeamModal').style.display = 'none';
+    }
+  }
+
+  function checkAdminPassword() {
+    let pass = document.getElementById('adminPasswordInput').value;
+    if (pass === "1978") {
+      document.getElementById('adminLoginModal').style.display = 'none';
+      populateAdminTable();
+      loadAllUserTeams();
+      document.getElementById('adminPanelModal').style.display = 'flex';
+    } else {
+      alert("كلمة المرور غير صحيحة!");
+    }
+  }
+
+  function loadAllUserTeams() {
+    let container = document.getElementById('adminTeamsContainer');
+    container.innerHTML = "جاري تحميل التشكيلات المحفوظة...";
+
+    if (typeof db !== 'undefined' && db.collection) {
+      db.collection("user_teams").orderBy("timestamp", "desc").get().then((querySnapshot) => {
+        container.innerHTML = "";
+        if(querySnapshot.empty) {
+          container.innerHTML = "<p style='color:#8b949e; text-align:center;'>لا توجد تشكيلات محفوظة سحابياً.</p>";
+          return;
+        }
+        querySnapshot.forEach((doc) => {
+          let data = doc.data();
+          let teamBox = document.createElement('div');
+          teamBox.style.cssText = "background: #161b22; border: 1px solid #30363d; padding: 8px; margin-bottom: 8px; border-radius: 4px;";
+          let playersNames = data.players ? data.players.map(p => p.name).join(", ") : "لا توجد تفاصيل";
+          teamBox.innerHTML = `
+            <strong style="color: #00ff87;">فريق: ${data.teamName}</strong> (المدرب: ${data.managerName})<br>
+            <span style="font-size:11px; color:#c9d1d9;">اللاعبون: ${playersNames}</span>
+          `;
+          container.appendChild(teamBox);
+        });
+      }).catch(err => {
+        container.innerHTML = "<p style='color:#ff5252; text-align:center;'>خطأ في تحميل التشكيلات.</p>";
+      });
+    }
+  }
+
+  // تحميل التشكيلات العامة ليراها الجميع في خانة "التشكيلات المحفوظة"
+  function loadPublicSavedTeams() {
+    let container = document.getElementById('publicSavedTeamsContainer');
+    container.innerHTML = "<p style='color: #8b949e; text-align: center; padding: 20px;'>جاري تحميل التشكيلات...</p>";
+
+    if (typeof db !== 'undefined' && db.collection) {
+      db.collection("user_teams").orderBy("timestamp", "desc").get().then((querySnapshot) => {
+        container.innerHTML = "";
+        if (querySnapshot.empty) {
+          container.innerHTML = "<p style='color: #8b949e; text-align: center; padding: 20px;'>لا توجد تشكيلات محفوظة حتى الآن.</p>";
+          return;
+        }
+        querySnapshot.forEach((doc) => {
+          let data = doc.data();
+          let box = document.createElement('div');
+          box.style.cssText = "background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px;";
+          let playersList = data.players ? data.players.map(p => `<span style='background:#21262d; padding:2px 6px; border-radius:4px; font-size:11px; color:#00ff87; display:inline-block; margin:2px;'>${p.name} (${p.pos})</span>`).join(" ") : "لا توجد تفاصيل";
+          box.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #30363d; padding-bottom: 6px;">
+              <strong style="color: #00ff87; font-size: 14px;">🛡️ فريق: ${data.teamName}</strong>
+              <span style="color: #ffeb3b; font-size: 12px;">👤 المدرب: ${data.managerName}</span>
+            </div>
+            <div style="font-size: 11px; color: #c9d1d9; line-height: 1.6;">
+              <strong>اللاعبون المختارون:</strong><br>
+              <div style="margin-top: 5px;">${playersList}</div>
+            </div>
+          `;
+          container.appendChild(box);
+        });
+      }).catch(err => {
+        container.innerHTML = "<p style='color: #ff5252; text-align: center; padding: 20px;'>تعذر جلب التشكيلات من السحابة.</p>";
+      });
+    } else {
+      container.innerHTML = "<p style='color: #8b949e; text-align: center; padding: 20px;'>قاعدة البيانات غير متصلة.</p>";
+    }
+  }
+
+  function populateAdminTable() {
+    let tbody = document.getElementById('adminPlayersTableBody');
+    tbody.innerHTML = '';
+    allPlayers.forEach(p => {
+      let tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.name}</td>
+        <td>${p.team}</td>
+        <td>${p.pos}</td>
+        <td><input type="number" id="admin_pt_${p.id}" value="${p.points}" style="width: 60px; background: #161b22; color: #00ff87; border: 1px solid #30363d; text-align: center; border-radius: 4px; padding: 4px;"></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function saveAdminPoints() {
+    allPlayers.forEach(p => {
+      let input = document.getElementById('admin_pt_' + p.id);
+      if (input) {
+        p.points = parseFloat(input.value) || 0;
+      }
+    });
+    document.getElementById('adminPanelModal').style.display = 'none';
+    alert("تم حفظ نقاط اللاعبين بنجاح وتحديثها في النظام! ✅");
+    renderApp();
+  }
+
+  function toggleChip(chipName) {
+    if (isDeadlinePassed()) {
+      alert("عذراً، انتهى وقت التغييرات (Deadline)! لا يمكن تفعيل الخصائص الآن.");
+      return;
+    }
+    if (activeChip === chipName) {
+      activeChip = null;
+      alert("تم إلغاء تفعيل الخاصية.");
+    } else {
+      activeChip = chipName;
+      let names = { 'TC': 'تريبل كابتن (3x)', 'BB': 'بنش بوست (نقاط الاحتياط)' };
+      alert("تم تفعيل خاصية: " + names[chipName]);
+    }
+    
+    document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active-chip'));
+    if (activeChip) {
+      let activeBtn = document.getElementById('chip' + activeChip);
+      if(activeBtn) activeBtn.classList.add('active-chip');
+    }
+    updateStats();
+  }
+
+  function calculateTeamPoints() {
+    let starters = myTeam.slice(0, 11);
+    let bench = myTeam.slice(11, 15);
+    let gwPoints = 0;
+
+    starters.forEach(p => {
+      let pPoints = p.points || 0;
+      if (p.id === captainId) {
+        let multiplier = (activeChip === 'TC') ? 3 : 2;
+        pPoints *= multiplier;
+      }
+      gwPoints += pPoints;
+    });
+
+    if (activeChip === 'BB') {
+      bench.forEach(p => {
+        gwPoints += (p.points || 0);
+      });
+    }
+
+    document.getElementById('gwPointsDisplay').innerText = gwPoints;
+  }
+
+  function updateStats() {
+    let spent = myTeam.reduce((sum, p) => sum + p.price, 0);
+    let remaining = totalBudget - spent;
+    document.getElementById('budgetDisplay').innerText = '$' + remaining.toFixed(1) + 'M';
+    document.getElementById('countDisplay').innerText = myTeam.length + ' / 15';
+    calculateTeamPoints();
+  }
+
+  function addPlayer(player) {
+    if (isDeadlinePassed()) {
+      alert("عذراً، انتهى وقت التغييرات (Deadline)! لا يمكن إضافة أو إزالة لاعبين.");
+      return;
+    }
+    let isAlreadyIn = myTeam.some(p => p.id === player.id);
+    if (isAlreadyIn) {
+      myTeam = myTeam.filter(p => p.id !== player.id);
+      if (captainId === player.id) captainId = null;
+      if (viceCaptainId === player.id) viceCaptainId = null;
+      selectedPlayerForSub = null;
+      renderApp();
+    } else {
+      if (myTeam.length >= 15) {
+        alert("لقد اخترت الحد الأقصى (15 لاعباً)!");
+        return;
+      }
+      
+      let sameTeamCount = myTeam.filter(p => p.team === player.team).length;
+      if (sameTeamCount >= 4) {
+        alert("لا يمكنك اختيار أكثر من 4 لاعبين من نفس الفريق (" + player.team + ")!");
+        return;
+      }
+
+      let spent = myTeam.reduce((sum, p) => sum + p.price, 0);
+      if (spent + player.price > totalBudget) {
+        alert("الميزانية لا تكفي لشراء هذا اللاعب!");
+        return;
+      }
+      myTeam.push(player);
+      if (!captainId) captainId = player.id;
+      else if (!viceCaptainId) viceCaptainId = player.id;
+
+      renderApp();
+      let teamBtn = document.querySelectorAll('nav button')[0];
+      switchTab('team', teamBtn);
+    }
+  }
+
+  function addPlayerById(id) {
+    let p = allPlayers.find(item => item.id === id);
+    if (p) addPlayer(p);
+  }
+
+  function handleTeamSlotClick(player) {
+    if (!player) return;
+    currentModalPlayer = player;
+
+    document.getElementById('modalPlayerName').innerText = player.name;
+    document.getElementById('modalPlayerTeam').innerText = player.team;
+    document.getElementById('modalPlayerPrice').innerText = '$' + player.price + 'M';
+    document.getElementById('modalPlayerPos').innerText = player.pos;
+    document.getElementById('modalOwnership').innerText = player.ownership;
+    document.getElementById('modalPtsGame').innerText = player.points;
+
+    let nextMatchText = matchweek15Fixtures[player.team] || "ضد منافس (الدور 15)";
+    document.getElementById('modalNextFixture').innerHTML = `<span>المنافس والتوقيت</span><br><strong style="color:#00ff87; font-size:12px;">${nextMatchText}</strong>`;
+
+    document.getElementById('playerModal').style.display = 'flex';
+  }
+
+  function closePlayerModal(e) {
+    if (e.target.id === 'playerModal') {
+      document.getElementById('playerModal').style.display = 'none';
+    }
+  }
+
+  function closePlayerModalDirect() {
+    document.getElementById('playerModal').style.display = 'none';
+  }
+
+  function makeCaptainModal() {
+    if (isDeadlinePassed()) {
+      alert("عذراً، انتهى وقت الديدلاين ولا يمكن تغيير الكابتن!");
+      return;
+    }
+    if (currentModalPlayer) {
+      if (viceCaptainId === currentModalPlayer.id) {
+        viceCaptainId = null;
+      }
+      captainId = currentModalPlayer.id;
+      alert("تم تعيين " + currentModalPlayer.name + " كابتن للفريق (C) 👑");
+      closePlayerModalDirect();
+      renderPitch();
+    }
+  }
+
+  function makeViceCaptainModal() {
+    if (isDeadlinePassed()) {
+      alert("عذراً، انتهى وقت الديدلاين ولا يمكن تغيير نائب الكابتن!");
+      return;
+    }
+    if (currentModalPlayer) {
+      if (captainId === currentModalPlayer.id) {
+        alert("هذا اللاعب هو الكابتن الحالي (C)! لا يمكن تعيينه كنائب كابتن.");
+        return;
+      }
+      viceCaptainId = currentModalPlayer.id;
+      alert("تم تعيين " + currentModalPlayer.name + " نائب الكابتن للفريق (V) ⭐");
+      closePlayerModalDirect();
+      renderPitch();
+    }
+  }
+
+  function removePlayerFromModal() {
+    if (isDeadlinePassed()) {
+      alert("عذراً، انتهى وقت الديدلاين ولا يمكن إزالة اللاعبين!");
+      return;
+    }
+    if (currentModalPlayer) {
+      let playerName = currentModalPlayer.name;
+      addPlayer(currentModalPlayer); 
+      closePlayerModalDirect();
+      alert("تمت إزالة اللاعب " + playerName + " من تشكيلتك بنجاح.");
+    }
+  }
+
+  function initiateSubModal() {
+    if (isDeadlinePassed()) {
+      alert("عذراً، انتهى وقت الديدلاين ولا يمكن إجراء تبديلات!");
+      return;
+    }
+    if (!currentModalPlayer) return;
+    closePlayerModalDirect();
+    
+    selectedPlayerForSub = currentModalPlayer;
+    renderPitch();
+    alert("الآن اضغط على اللاعب الذي تريد تبديله معه في التشكيلة أو الدكة.");
+  }
+
+  function handleSlotDirectClick(player) {
+    if (!player) return;
+    if (selectedPlayerForSub) {
+      if (isDeadlinePassed()) {
+        alert("انتهى وقت الديدلاين!");
+        return;
+      }
+      let idx1 = myTeam.findIndex(p => p.id === selectedPlayerForSub.id);
+      let idx2 = myTeam.findIndex(p => p.id === player.id);
+      if (idx1 > -1 && idx2 > -1) {
+        let temp = myTeam[idx1];
+        myTeam[idx1] = myTeam[idx2];
+        myTeam[idx2] = temp;
+      }
+      selectedPlayerForSub = null;
+      renderPitch();
+    } else {
+      handleTeamSlotClick(player);
+    }
+  }
+
+  function autoPick() {
+    if (isDeadlinePassed()) {
+      alert("انتهى وقت الديدلاين ولا يمكن توليد تشكيلة تلقائية.");
+      return;
+    }
+    if (allPlayers.length === 0) {
+      alert("لا توجد قائمة لاعبين مضافة حالياً!");
+      return;
+    }
+
+    myTeam = [];
+    let currentSpent = 0;
+
+    let gks = allPlayers.filter(p => p.pos === "حارس");
+    let defs = allPlayers.filter(p => p.pos === "دفاع");
+    let mids = allPlayers.filter(p => p.pos === "وسط");
+    let fwds = allPlayers.filter(p => p.pos === "هجوم");
+
+    let selectedIds = new Set();
+
+    function tryAddPlayer(player) {
+      if (!player || selectedIds.has(player.id)) return false;
+      if (myTeam.length >= 15) return false;
+      if (currentSpent + player.price > totalBudget) return false;
+
+      let sameTeamCount = myTeam.filter(p => p.team === player.team).length;
+      if (sameTeamCount >= 4) return false;
+
+      myTeam.push(player);
+      selectedIds.add(player.id);
+      currentSpent += player.price;
+      return true;
+    }
+
+    if (gks.length > 0) tryAddPlayer(gks[0]);
+
+    for (let p of defs) {
+      if (myTeam.filter(x => x.pos === "دفاع").length < 4) tryAddPlayer(p);
+    }
+
+    for (let p of mids) {
+      if (myTeam.filter(x => x.pos === "وسط").length < 3) tryAddPlayer(p);
+    }
+
+    for (let p of fwds) {
+      if (myTeam.filter(x => x.pos === "هجوم").length < 3) tryAddPlayer(p);
+    }
+
+    let subGk = gks.find(p => !selectedIds.has(p.id));
+    if (subGk) tryAddPlayer(subGk);
+
+    let allRemaining = [...gks, ...defs, ...mids, ...fwds].filter(p => !selectedIds.has(p.id));
+    for (let p of allRemaining) {
+      if (myTeam.length < 15) tryAddPlayer(p);
+    }
+
+    if (myTeam.length > 0) {
+      captainId = myTeam[0].id;
+      if (myTeam.length > 1) viceCaptainId = myTeam[1].id;
+    }
+    
+    selectedPlayerForSub = null;
+    renderApp();
+    alert("تم توليد واختيار التشكيلة تلقائياً بنجاح وبما يتناسب مع الميزانية المحددة! ⚽");
+  }
+
+  function resetTeam() {
+    if (isDeadlinePassed()) {
+      alert("انتهى وقت الديدلاين!");
+      return;
+    }
+    if (confirm("هل أنت متأكد من إعادة تعيين التشكيلة بالكامل؟")) {
+      myTeam = [];
+      captainId = null;
+      viceCaptainId = null;
+      selectedPlayerForSub = null;
+      renderApp();
+    }
+  }
+
+  // حفظ التشكيلة ونشرها سحابياً داخل الموقع باستخدام add لتجنب تعارض المعرفات
+  function saveTeam() {
+    if (!managerName || !teamName) {
+      managerName = localStorage.getItem('border_manager') || "مدرب";
+      teamName = localStorage.getItem('border_teamname') || "فريق الحدود";
+    }
+
+    if (myTeam.length < 15) {
+      let confirmIncomplete = confirm(`تنبيه: تشكيلتك تحتوي على ${myTeam.length} لاعبين فقط (الحد المطلوب 15). هل تريد حفظها ونشرها بالموقع على أي حال؟`);
+      if (!confirmIncomplete) return;
+    }
+
+    let teamPayload = {
+      managerName: managerName,
+      teamName: teamName,
+      players: myTeam.map(p => ({ id: p.id, name: p.name, pos: p.pos, team: p.team })),
+      captainId: captainId,
+      timestamp: new Date().toISOString()
+    };
+
+    if (typeof db !== 'undefined' && db.collection) {
+      db.collection("user_teams").add(teamPayload).then(() => {
+        alert("✅ تم حفظ ونشر تشكيلتك بنجاح داخل الموقع! يمكنك الانتقال إلى خانة 'التشكيلات المحفوظة' لرؤيتها مع باقي تشكيلات المدربين 📋⚽");
+      }).catch(err => {
+        alert("⚠️ حدث خطأ أثناء الحفظ بالسحابة (تأكد من قواعد الأمان في فايربيس): " + err.message);
+      });
+    } else {
+      alert("⚠️ قاعدة البيانات غير متصلة.");
+    }
+  }
+
+  function switchTab(tabId, btnElement) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    btnElement.classList.add('active');
+
+    if (tabId === 'players') {
+      renderMarket();
+    } else if (tabId === 'savedTeams') {
+      loadPublicSavedTeams();
+    }
+  }
+
+  function filterMarketByPos(pos) {
+    selectedPosFilter = pos;
+    let resetBtn = document.getElementById('resetFilterBtn');
+    if (pos) {
+      resetBtn.style.display = 'block';
+    } else {
+      resetBtn.style.display = 'none';
+    }
+    renderMarket();
+  }
+
+  function renderMarket() {
+    let container = document.getElementById('marketContainer');
+    container.innerHTML = '';
+
+    let positions = ["حارس", "دفاع", "وسط", "هجوم"];
+    if (selectedPosFilter) {
+      positions = [selectedPosFilter];
+    }
+
+    positions.forEach(pos => {
+      let filtered = allPlayers.filter(p => p.pos === pos);
+      if (filtered.length === 0) return;
+
+      filtered.sort((a, b) => {
+        if (b.price !== a.price) {
+          return b.price - a.price;
+        }
+        return a.id - b.id;
+      });
+
+      let div = document.createElement('div');
+      div.className = 'market-table-container';
+      
+      let titleHTML = `<h3><span>مراكز الـ ${pos}</span> <span style="font-size:11px; color:#8b949e; cursor:pointer;" onclick="filterMarketByPos('${pos}')">تصفية هذا المركز فقط</span></h3>`;
+      
+      let tableHTML = `<table class="market-table">
+        <thead>
+          <tr>
+            <th>اللاعب</th>
+            <th>الفريق</th>
+            <th>السعر</th>
+            <th>نقاط</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      filtered.forEach(p => {
+        let isInTeam = myTeam.some(item => item.id === p.id);
+        let btnText = isInTeam ? "إزالة" : "إضافة";
+        let btnClass = isInTeam ? "btn-select-market remove" : "btn-select-market";
+        let disabledAttr = isDeadlinePassed() ? "disabled style='opacity:0.5; cursor:not-allowed;'" : "";
+        
+        tableHTML += `<tr>
+          <td><span class="jersey-icon">⚽</span> ${p.name}</td>
+          <td>${p.team}</td>
+          <td>$${p.price}M</td>
+          <td style="color: #00ff87; font-weight: bold;">${p.points}</td>
+          <td><button class="${btnClass}" ${disabledAttr} onclick="addPlayerById(${p.id})">${btnText}</button></td>
+        </tr>`;
+      });
+
+      tableHTML += `</tbody></table>`;
+      div.innerHTML = titleHTML + tableHTML;
+      container.appendChild(div);
+    });
+  }
+
+  function renderPitch() {
+    let starters = myTeam.slice(0, 11);
+    let bench = myTeam.slice(11, 15);
+
+    let gkRow = document.getElementById('row_GK');
+    let defRow = document.getElementById('row_DEF');
+    let midRow = document.getElementById('row_MID');
+    let fwdRow = document.getElementById('row_FWD');
+    let benchBox = document.getElementById('benchView');
+
+    gkRow.innerHTML = '';
+    defRow.innerHTML = '';
+    midRow.innerHTML = '';
+    fwdRow.innerHTML = '';
+    benchBox.innerHTML = '';
+
+    starters.forEach(p => {
+      let slot = createSlotElement(p, true);
+      if (p.pos === 'حارس') gkRow.appendChild(slot);
+      else if (p.pos === 'دفاع') defRow.appendChild(slot);
+      else if (p.pos === 'وسط') midRow.appendChild(slot);
+      else if (p.pos === 'هجوم') fwdRow.appendChild(slot);
+    });
+
+    fillEmptySlots(gkRow, 'حارس', 1);
+    fillEmptySlots(defRow, 'دفاع', 4);
+    fillEmptySlots(midRow, 'وسط', 3);
+    fillEmptySlots(fwdRow, 'هجوم', 3);
+
+    for (let i = 0; i < 4; i++) {
+      if (i < bench.length) {
+        benchBox.appendChild(createSlotElement(bench[i], false));
+      } else {
+        let emptySlot = document.createElement('div');
+        emptySlot.className = 'slot-card';
+        emptySlot.innerHTML = `<span style="color:#8b949e">احتياط<br>+</span>`;
+        emptySlot.onclick = () => {
+          if (isDeadlinePassed()) {
+            alert("انتهى وقت الديدلاين!");
+            return;
+          }
+          goToMarket();
+        };
+        benchBox.appendChild(emptySlot);
+      }
+    }
+  }
+
+  function fillEmptySlots(rowElement, posName, targetCount) {
+    let currentChildren = rowElement.children.length;
+    for (let i = currentChildren; i < targetCount; i++) {
+      let emptySlot = document.createElement('div');
+      emptySlot.className = 'slot-card';
+      emptySlot.innerHTML = `<span style="color:#8b949e">${posName}<br>+</span>`;
+      
+      emptySlot.onclick = () => {
+        if (isDeadlinePassed()) {
+          alert("انتهى وقت الديدلاين!");
+          return;
+        }
+        let playersBtn = document.querySelectorAll('nav button')[1];
+        switchTab('players', playersBtn);
+        filterMarketByPos(posName);
+      };
+
+      rowElement.appendChild(emptySlot);
+    }
+  }
+
+  function createSlotElement(player, isStarter) {
+    let slot = document.createElement('div');
+    let isSelectedForSub = (selectedPlayerForSub && selectedPlayerForSub.id === player.id);
+    slot.className = 'slot-card filled' + (isSelectedForSub ? ' selected-for-sub' : '');
+    
+    let badgeHTML = '';
+    if (player.id === captainId) badgeHTML = `<span class="role-badge c">C</span>`;
+    else if (player.id === viceCaptainId) badgeHTML = `<span class="role-badge vc">V</span>`;
+    
+    if (activeChip === 'TC' && player.id === captainId) {
+      badgeHTML = `<span class="role-badge tc" style="background:#00ff87; color:#000;">TC</span>`;
+    }
+
+    slot.innerHTML = `
+      ${badgeHTML}
+      <span style="font-size:16px; margin-top:2px;">⚽</span>
+      <strong title="${player.name}">${player.name}</strong>
+      <span style="font-size:8px; color:#a5d6a7;">${player.team}</span>
+      <span style="font-size:8px; color:#ffeb3b;">${player.points} نقطة</span>
+    `;
+
+    slot.onclick = () => handleSlotDirectClick(player);
+    return slot;
+  }
+
+  function renderApp() {
+    updateStats();
+    renderPitch();
+    if (document.getElementById('players').classList.contains('active')) {
+      renderMarket();
+    }
+  }
+
+  window.onload = function() {
+    let savedManager = localStorage.getItem('border_manager');
+    let savedTeam = localStorage.getItem('border_teamname');
+
+    if (savedManager && savedTeam) {
+      managerName = savedManager;
+      teamName = savedTeam;
+      document.getElementById('headerTeamInfo').innerText = `المدرب: ${managerName} | الفريق: ${teamName}`;
+      document.getElementById('welcomeOverlay').style.display = 'none';
+    }
+
+    renderApp();
+    updateCountdown();
+  };
+</script>
+</body>
+</html>
